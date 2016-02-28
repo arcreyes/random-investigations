@@ -98,7 +98,7 @@ int CsvParser_getNumFields(CsvRow *csvRow) {
 	return csvRow->numOfFields_;
 }
 
-TCHAR **CsvParser_getFields(CsvRow *csvRow) {
+std::vector<TCHAR*> CsvParser_getFields(CsvRow *csvRow) {
 	return csvRow->fields_;
 }
 
@@ -139,10 +139,12 @@ CsvRow *_CsvParser_getRow(CsvParser *csvParser) {
 		}
 	}
 	CsvRow *csvRow = new CsvRow;
-	csvRow->fields_ = new TCHAR*[acceptedFields];
+	csvRow->fields_.resize(acceptedFields);
 	csvRow->numOfFields_ = 0;
 	int fieldIter = 0;
-	TCHAR *currField = new TCHAR[acceptedCharsInField];
+	std::vector<TCHAR> currField;
+	currField.resize(acceptedCharsInField);
+	//TCHAR *currField = new TCHAR[acceptedCharsInField];
 	int inside_complex_field = 0;
 	int currFieldCharIter = 0;
 	int seriesOfQuotesLength = 0;
@@ -189,18 +191,19 @@ CsvRow *_CsvParser_getRow(CsvParser *csvParser) {
 		if (isEndOfFile || ((currChar == csvParser->delimiter_ || currChar == '\n') && !inside_complex_field)){
 			currField[lastCharIsQuote ? currFieldCharIter - 1 : currFieldCharIter] = '\0';
 			csvRow->fields_[fieldIter] = new TCHAR[currFieldCharIter + 1];
-			_tcscpy(csvRow->fields_[fieldIter], currField);
-			delete[] (currField);
+			_tcscpy(csvRow->fields_[fieldIter], &currField[0]);
+			currField.clear();
+
 			csvRow->numOfFields_++;
 			if (currChar == '\n') {
 				return csvRow;
 			}
 			if (csvRow->numOfFields_ != 0 && csvRow->numOfFields_ % acceptedFields == 0) {
-				csvRow->fields_ = (TCHAR**)realloc(csvRow->fields_, ((numRowRealloc + 2) * acceptedFields) * sizeof(TCHAR*));
+				csvRow->fields_.resize((numRowRealloc + 2) * acceptedFields) ;
 				numRowRealloc++;
 			}
 			acceptedCharsInField = 64;
-			currField = new TCHAR[acceptedCharsInField];
+			currField.resize(acceptedCharsInField);
 			currFieldCharIter = 0;
 			fieldIter++;
 			inside_complex_field = 0;
@@ -210,7 +213,7 @@ CsvRow *_CsvParser_getRow(CsvParser *csvParser) {
 			currFieldCharIter++;
 			if (currFieldCharIter == acceptedCharsInField - 1) {
 				acceptedCharsInField *= 2;
-				currField = (TCHAR*)realloc(currField, acceptedCharsInField);
+				currField.resize(acceptedCharsInField);
 			}
 		}
 		lastCharIsQuote = (currChar == '\"') ? 1 : 0;

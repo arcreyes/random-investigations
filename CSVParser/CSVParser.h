@@ -8,7 +8,7 @@
 #include <vector>
 
 typedef struct CsvRow {
-	TCHAR **fields_;
+	std::vector<TCHAR*> fields_;
 	int numOfFields_;
 } CsvRow;
 
@@ -33,7 +33,7 @@ void CsvParser_destroy_row(CsvRow *csvRow);
 CsvRow *CsvParser_getHeader(CsvParser *csvParser);
 CsvRow *CsvParser_getRow(CsvParser *csvParser);
 int CsvParser_getNumFields(CsvRow *csvRow);
-TCHAR **CsvParser_getFields(CsvRow *csvRow);
+std::vector<TCHAR*> CsvParser_getFields(CsvRow *csvRow);
 const TCHAR* CsvParser_getErrorMessage(CsvParser *csvParser);
 
 // Private

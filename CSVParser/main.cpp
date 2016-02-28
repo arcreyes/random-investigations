@@ -18,7 +18,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		_tprintf(_T("%s\n"), CsvParser_getErrorMessage(csvparser));
 		return 1;
 	}
-	TCHAR **headerFields = CsvParser_getFields(header);
+	std::vector<TCHAR*> headerFields = CsvParser_getFields(header);
 	for (i = 0; i < CsvParser_getNumFields(header); i++) {
 		_tprintf(_T("TITLE: %s\n"), headerFields[i]);
 	}
@@ -27,7 +27,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	// CsvParser_destroy_row(header);
 	while ((row = CsvParser_getRow(csvparser))) {
 		_tprintf(_T("NEW LINE:\n"));
-		TCHAR **rowFields = CsvParser_getFields(row);
+		std::vector<TCHAR*> rowFields = CsvParser_getFields(row);
 		for (i = 0; i < CsvParser_getNumFields(row); i++) {
 			_tprintf(_T("FIELD: %s\n"), rowFields[i]);
 		}
