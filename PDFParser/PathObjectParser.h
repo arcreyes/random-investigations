@@ -4,11 +4,11 @@
 
 using namespace PoDoFo;
 
-class PDFParser
+class PathObjectParser
 {
 public:
-	PDFParser(PdfMemDocument *pDoc);
-	~PDFParser();
+	PathObjectParser(PdfMemDocument *pDoc);
+	~PathObjectParser();
 
 	void ParsePath();
 	void ParsePage(PdfPage *pPage);
@@ -75,7 +75,7 @@ private:
 
 	};
 
-	typedef void (*ParseVariant)(std::vector<PdfVariant> &vVar);
+	typedef void(*PathObjectParser::ParseVariant)(std::vector<PdfVariant> &vVar);
 
 	struct ParseDictionary
 	{

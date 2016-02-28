@@ -1,20 +1,20 @@
 #include "stdafx.h"
-#include "PDFParser.h"
+#include "PathObjectParser.h"
 
 #include <vector>
 #include <string>
 
-PDFParser::PDFParser(PdfMemDocument *pDoc)
+PathObjectParser::PathObjectParser(PdfMemDocument *pDoc)
 {
 	m_pDoc = pDoc;
 }
 
 
-PDFParser::~PDFParser()
+PathObjectParser::~PathObjectParser()
 {
 }
 
-void PDFParser::ParsePath()
+void PathObjectParser::ParsePath()
 {
 	int count = m_pDoc->GetPageCount();
 
@@ -26,7 +26,7 @@ void PDFParser::ParsePath()
 	}
 }
 
-void PDFParser::ParsePage(PdfPage *pPage)
+void PathObjectParser::ParsePage(PdfPage *pPage)
 {
 	const char*      pszToken = NULL;
 	PdfVariant       var;
