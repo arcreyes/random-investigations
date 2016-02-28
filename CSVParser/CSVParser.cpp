@@ -5,70 +5,66 @@
 #include <string>
 
 
-CsvParser *CsvParser_new(const TCHAR *filePath, const TCHAR *delimiter, int firstLineIsHeader) {
-	CsvParser *csvParser = new CsvParser;
+CsvParser::CsvParser(const TCHAR *filePath, const TCHAR *delimiter, int firstLineIsHeader) 
+{
 	if (filePath == NULL) {
-		csvParser->filePath_ = NULL;
+		filePath_ = NULL;
 	}
 	else {
 		size_t filePathLen = _tcslen(filePath);
-		csvParser->filePath_ = new TCHAR[filePathLen + 1];
-		_tcscpy(csvParser->filePath_, filePath);
+		filePath_ = new TCHAR[filePathLen + 1];
+		_tcscpy(filePath_, filePath);
 	}
-	csvParser->firstLineIsHeader_ = firstLineIsHeader;
-	csvParser->errMsg_ = NULL;
+	firstLineIsHeader_ = firstLineIsHeader;
+	errMsg_ = NULL;
 	if (delimiter == NULL) {
-		csvParser->delimiter_ = ',';
+		delimiter_ = ',';
 	}
 	else if (_CsvParser_delimiterIsAccepted(delimiter)) {
-		csvParser->delimiter_ = *delimiter;
+		delimiter_ = *delimiter;
 	}
 	else {
-		csvParser->delimiter_ = '\0';
+		delimiter_ = '\0';
 	}
-	csvParser->header_ = NULL;
-	csvParser->fileHandler_ = NULL;
-	csvParser->fromString_ = 0;
-	csvParser->csvString_ = NULL;
-	csvParser->csvStringIter_ = 0;
-
-	return csvParser;
+	header_ = NULL;
+	fileHandler_ = NULL;
+	fromString_ = 0;
+	csvString_ = NULL;
+	csvStringIter_ = 0;
 }
 
-CsvParser *CsvParser_new_from_string(const TCHAR *csvString, const TCHAR *delimiter, int firstLineIsHeader) {
-	CsvParser *csvParser = CsvParser_new(NULL, delimiter, firstLineIsHeader);
-	csvParser->fromString_ = 1;
-	if (csvString != NULL) {
-		size_t csvStringLen = _tcslen(csvString);
-		csvParser->csvString_ = new TCHAR[csvStringLen + 1];
-		_tcscpy(csvParser->csvString_, csvString);
+//CsvParser *CsvParser::CsvParser_new_from_string(const TCHAR *csvString, const TCHAR *delimiter, int firstLineIsHeader) {
+//	CsvParser *csvParser = CsvParser_new(NULL, delimiter, firstLineIsHeader);
+//	csvParser->fromString_ = 1;
+//	if (csvString != NULL) {
+//		size_t csvStringLen = _tcslen(csvString);
+//		csvParser->csvString_ = new TCHAR[csvStringLen + 1];
+//		_tcscpy(csvParser->csvString_, csvString);
+//	}
+//	return csvParser;
+//}
+
+CsvParser::~CsvParser(void) 
+{
+	if (filePath_ != NULL) {
+		delete[] (filePath_);
 	}
-	return csvParser;
+	if (errMsg_ != NULL) {
+		delete[] (errMsg_);
+	}
+	if (fileHandler_ != NULL) {
+		fclose(fileHandler_);
+	}
+	if (header_ != NULL) {
+		DestroyRow(header_);
+	}
+	if (csvString_ != NULL) {
+		delete[] (csvString_);
+	}
 }
 
-void CsvParser_destroy(CsvParser *csvParser) {
-	if (csvParser == NULL) {
-		return;
-	}
-	if (csvParser->filePath_ != NULL) {
-		delete[] (csvParser->filePath_);
-	}
-	if (csvParser->errMsg_ != NULL) {
-		delete[] (csvParser->errMsg_);
-	}
-	if (csvParser->fileHandler_ != NULL) {
-		fclose(csvParser->fileHandler_);
-	}
-	if (csvParser->header_ != NULL) {
-		CsvParser_destroy_row(csvParser->header_);
-	}
-	if (csvParser->csvString_ != NULL) {
-		delete[] (csvParser->csvString_);
-	}
-	delete (csvParser);
-}
-
-void CsvParser_destroy_row(CsvRow *csvRow) {
+void CsvParser::DestroyRow(CsvRow *csvRow)
+{
 	int i;
 	for (i = 0; i < csvRow->numOfFields_; i++) {
 		delete[] (csvRow->fields_[i]);
@@ -76,63 +72,67 @@ void CsvParser_destroy_row(CsvRow *csvRow) {
 	delete (csvRow);
 }
 
-CsvRow *CsvParser_getHeader(CsvParser *csvParser) {
-	if (!csvParser->firstLineIsHeader_) {
-		_CsvParser_setErrorMessage(csvParser, _T("Cannot supply header, as current CsvParser object does not support header"));
+CsvRow *CsvParser::GetHeader(void) 
+{
+	if (!firstLineIsHeader_) {
+		_CsvParser_setErrorMessage(_T("Cannot supply header, as current CsvParser object does not support header"));
 		return NULL;
 	}
-	if (csvParser->header_ == NULL) {
-		csvParser->header_ = _CsvParser_getRow(csvParser);
+	if (header_ == NULL) {
+		header_ = _CsvParser_getRow();
 	}
-	return csvParser->header_;
+	return header_;
 }
 
-CsvRow *CsvParser_getRow(CsvParser *csvParser) {
-	if (csvParser->firstLineIsHeader_ && csvParser->header_ == NULL) {
-		csvParser->header_ = _CsvParser_getRow(csvParser);
+CsvRow *CsvParser::GetRow()
+{
+	if (firstLineIsHeader_ && header_ == NULL) {
+		header_ = _CsvParser_getRow();
 	}
-	return _CsvParser_getRow(csvParser);
+	return _CsvParser_getRow();
 }
 
-int CsvParser_getNumFields(CsvRow *csvRow) {
+int CsvParser::GetNumFields(CsvRow *csvRow) 
+{
 	return csvRow->numOfFields_;
 }
 
-std::vector<TCHAR*> CsvParser_getFields(CsvRow *csvRow) {
+std::vector<TCHAR*> CsvParser::GetFields(CsvRow *csvRow) 
+{
 	return csvRow->fields_;
 }
 
-CsvRow *_CsvParser_getRow(CsvParser *csvParser) {
+CsvRow *CsvParser::_CsvParser_getRow(void) {
 	int numRowRealloc = 0;
 	int acceptedFields = 64;
 	int acceptedCharsInField = 64;
-	if (csvParser->filePath_ == NULL && (!csvParser->fromString_)) {
-		_CsvParser_setErrorMessage(csvParser, _T("Supplied CSV file path is NULL"));
+	if (filePath_ == NULL && (!fromString_)) {
+		_CsvParser_setErrorMessage(_T("Supplied CSV file path is NULL"));
 		return NULL;
 	}
-	if (csvParser->csvString_ == NULL && csvParser->fromString_) {
-		_CsvParser_setErrorMessage(csvParser, _T("Supplied CSV string is NULL"));
+	if (csvString_ == NULL && fromString_) {
+		_CsvParser_setErrorMessage(_T("Supplied CSV string is NULL"));
 		return NULL;
 	}
-	if (csvParser->delimiter_ == '\0') {
-		_CsvParser_setErrorMessage(csvParser, _T("Supplied delimiter is not supported"));
+	if (delimiter_ == '\0') {
+		_CsvParser_setErrorMessage(_T("Supplied delimiter is not supported"));
 		return NULL;
 	}
-	if (!csvParser->fromString_) {
-		if (csvParser->fileHandler_ == NULL) {
-			csvParser->fileHandler_ = _tfopen(csvParser->filePath_, _T("r"));
-			if (csvParser->fileHandler_ == NULL) {
+	if (!fromString_) {
+		if (fileHandler_ == NULL) {
+			fileHandler_ = _tfopen(filePath_, _T("r"));
+			if (fileHandler_ == NULL) {
 				int errorNum = errno;
 				const TCHAR *errStr = _tcserror(errorNum);
 				size_t count = 1024 + _tcslen(errStr);
 				TCHAR *errMsg = new TCHAR[count];
 				_tcscpy(errMsg, _T(""));
 #ifdef _UNICODE
-				swprintf(errMsg, count, _T("Error opening CSV file for reading: %s : %s"), csvParser->filePath_, errStr);
+				swprintf(errMsg, count, _T("Error opening CSV file for reading: %s : %s"), filePath_, errStr);
 #else
 				sprintf(errMsg, _T("Error opening CSV file for reading: %s : %s"), csvParser->filePath_, errStr);
 #endif
-				_CsvParser_setErrorMessage(csvParser, errMsg);
+				_CsvParser_setErrorMessage(errMsg);
 				delete[] (errMsg);
 				return NULL;
 			}
@@ -151,18 +151,18 @@ CsvRow *_CsvParser_getRow(CsvParser *csvParser) {
 	int lastCharIsQuote = 0;
 	int isEndOfFile = 0;
 	while (1) {
-		TCHAR currChar = (csvParser->fromString_) ? csvParser->csvString_[csvParser->csvStringIter_] : fgetwc(csvParser->fileHandler_);
-		csvParser->csvStringIter_++;
+		TCHAR currChar = (fromString_) ? csvString_[csvStringIter_] : fgetwc(fileHandler_);
+		csvStringIter_++;
 		int endOfFileIndicator;
-		if (csvParser->fromString_) {
+		if (fromString_) {
 			endOfFileIndicator = (currChar == '\0');
 		}
 		else {
-			endOfFileIndicator = feof(csvParser->fileHandler_);
+			endOfFileIndicator = feof(fileHandler_);
 		}
 		if (endOfFileIndicator) {
 			if (currFieldCharIter == 0 && fieldIter == 0) {
-				_CsvParser_setErrorMessage(csvParser, _T("Reached EOF"));
+				_CsvParser_setErrorMessage(_T("Reached EOF"));
 				return NULL;
 			}
 			currChar = '\n';
@@ -188,7 +188,7 @@ CsvRow *_CsvParser_getRow(CsvParser *csvParser) {
 		else {
 			seriesOfQuotesLength = 0;
 		}
-		if (isEndOfFile || ((currChar == csvParser->delimiter_ || currChar == '\n') && !inside_complex_field)){
+		if (isEndOfFile || ((currChar == delimiter_ || currChar == '\n') && !inside_complex_field)){
 			currField[lastCharIsQuote ? currFieldCharIter - 1 : currFieldCharIter] = '\0';
 			csvRow->fields_[fieldIter] = new TCHAR[currFieldCharIter + 1];
 			_tcscpy(csvRow->fields_[fieldIter], &currField[0]);
@@ -220,7 +220,8 @@ CsvRow *_CsvParser_getRow(CsvParser *csvParser) {
 	}
 }
 
-int _CsvParser_delimiterIsAccepted(const TCHAR *delimiter) {
+int CsvParser::_CsvParser_delimiterIsAccepted(const TCHAR *delimiter) 
+{
 	TCHAR actualDelimiter = *delimiter;
 	if (actualDelimiter == '\n' || actualDelimiter == '\r' || actualDelimiter == '\0' ||
 		actualDelimiter == '\"') {
@@ -229,15 +230,18 @@ int _CsvParser_delimiterIsAccepted(const TCHAR *delimiter) {
 	return 1;
 }
 
-void _CsvParser_setErrorMessage(CsvParser *csvParser, const TCHAR *errorMessage) {
-	if (csvParser->errMsg_ != NULL) {
-		delete[] (csvParser->errMsg_);
+void CsvParser::_CsvParser_setErrorMessage(const TCHAR *errorMessage) 
+{
+	if (errMsg_ != NULL) 
+	{
+		delete[] (errMsg_);
 	}
 	size_t errMsgLen = _tcslen(errorMessage);
-	csvParser->errMsg_ = new TCHAR[errMsgLen + 1];
-	_tcscpy(csvParser->errMsg_, errorMessage);
+	errMsg_ = new TCHAR[errMsgLen + 1];
+	_tcscpy(errMsg_, errorMessage);
 }
 
-const TCHAR *CsvParser_getErrorMessage(CsvParser *csvParser) {
-	return csvParser->errMsg_;
+const TCHAR *CsvParser::GetErrorMessage(void) 
+{
+	return errMsg_;
 }
