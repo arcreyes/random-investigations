@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FontList", "FontList\FontLi
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CSVParser", "CSVParser\CSVParser.vcxproj", "{10F372AB-2E18-4817-B484-71B0D684BE9D}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PDFParser", "PDFParser\PDFParser.vcxproj", "{281C5169-80E7-46AE-B6C7-35A9AD8E2A49}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -40,6 +42,17 @@ Global
 		{10F372AB-2E18-4817-B484-71B0D684BE9D}.Release|Win32.ActiveCfg = Release|Win32
 		{10F372AB-2E18-4817-B484-71B0D684BE9D}.Release|Win32.Build.0 = Release|Win32
 		{10F372AB-2E18-4817-B484-71B0D684BE9D}.Release|x64.ActiveCfg = Release|Win32
+		{281C5169-80E7-46AE-B6C7-35A9AD8E2A49}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{281C5169-80E7-46AE-B6C7-35A9AD8E2A49}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{281C5169-80E7-46AE-B6C7-35A9AD8E2A49}.Debug|Win32.ActiveCfg = Debug|Win32
+		{281C5169-80E7-46AE-B6C7-35A9AD8E2A49}.Debug|Win32.Build.0 = Debug|Win32
+		{281C5169-80E7-46AE-B6C7-35A9AD8E2A49}.Debug|x64.ActiveCfg = Debug|x64
+		{281C5169-80E7-46AE-B6C7-35A9AD8E2A49}.Debug|x64.Build.0 = Debug|x64
+		{281C5169-80E7-46AE-B6C7-35A9AD8E2A49}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{281C5169-80E7-46AE-B6C7-35A9AD8E2A49}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{281C5169-80E7-46AE-B6C7-35A9AD8E2A49}.Release|Win32.ActiveCfg = Release|Win32
+		{281C5169-80E7-46AE-B6C7-35A9AD8E2A49}.Release|Win32.Build.0 = Release|Win32
+		{281C5169-80E7-46AE-B6C7-35A9AD8E2A49}.Release|x64.ActiveCfg = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
